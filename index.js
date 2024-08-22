@@ -67,8 +67,8 @@ const sendUpdatedData = async () => {
     return {
       ...bus,
       nextDeparture: {
-        date: nextDeparture.toFormat("yyyy-MM-dd"),
-        time: nextDeparture.toFormat("HH:mm:ss"),
+        date: nextDeparture.toFormat('yyyy-MM-dd'),
+        time: nextDeparture.toFormat('HH:mm:ss'),
       },
     };
   });
@@ -84,8 +84,13 @@ app.get('/next-departure', async (req, res) => {
   try {
     const updatedBuses = await sendUpdatedData();
 
-    res.json(updatedBuses);
+    updatedBuses.sort(
+      (a, b) =>
+        new Date(`${b.nextDeparture.date}T${b.nextDeparture.time}`) -
+        new Date(`${a.nextDeparture.date}T${a.nextDeparture.time}`)
+    );
 
+    res.json(updatedBuses);
   } catch (error) {
     console.log(error);
     res.send(error.message);
