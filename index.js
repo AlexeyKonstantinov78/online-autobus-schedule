@@ -16,8 +16,12 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
 const loadBuses = async () => {
-  const data = await readFile(path.join(__dirname, 'buses.json'), 'utf8');
-  return await JSON.parse(data);
+  try {
+    const data = await readFile(path.join(__dirname, 'db', 'buses.json'), 'utf8');
+    return await JSON.parse(data);
+  } catch (error) {
+    console.log("error: ", error);
+  }
 };
 
 const getNextDeparture = (firstDepartureTime, frequencyMinutes) => {
@@ -34,24 +38,17 @@ const getNextDeparture = (firstDepartureTime, frequencyMinutes) => {
   }
 
   const endOfDay = DateTime.now()
-    .set({ hours: 23, minutes: 59, seconds: 0 })
+    .set({ hours: 23, minutes: 59, seconds: 59 })
     .setZone(timeZone);
-
-  if (departure > endOfDay) {
-    departure = departure
-      .startOf('day')
-      .plus({ days: 1 })
-      .set({ hours, minutes });
-  }
 
   while (now > departure) {
     departure = departure.plus({ minutes: frequencyMinutes });
 
     if (departure > endOfDay) {
-      departure = departure
-        .startOf('day')
+      departure = DateTime.now()
+        .set({ hour, minute, second: 0, millisecond: 0 })
         .plus({ days: 1 })
-        .set({ hours, minutes });
+        .setZone(timeZone);
     }
   }
 
